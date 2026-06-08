@@ -104,8 +104,11 @@ class _JadwalScreenState extends ConsumerState<JadwalScreen> {
   }
 
   Future<void> _openCreateForm(BuildContext context, WidgetRef ref) async {
+    final selectedDate = ref.read(jadwalProvider).selectedDate;
     final input = await Navigator.of(context).push<JadwalInput>(
-      MaterialPageRoute(builder: (_) => const JadwalFormScreen()),
+      MaterialPageRoute(
+        builder: (_) => JadwalFormScreen(initialDate: selectedDate),
+      ),
     );
 
     if (input == null || !context.mounted) {
@@ -119,6 +122,9 @@ class _JadwalScreenState extends ConsumerState<JadwalScreen> {
       return;
     }
 
+    if (result.success) {
+      ref.read(jadwalProvider.notifier).selectDate(input.startAt);
+    }
     _showActionResult(context, result);
   }
 
@@ -142,6 +148,9 @@ class _JadwalScreenState extends ConsumerState<JadwalScreen> {
       return;
     }
 
+    if (result.success) {
+      ref.read(jadwalProvider.notifier).selectDate(input.startAt);
+    }
     _showActionResult(context, result);
   }
 
@@ -846,7 +855,7 @@ class _AgendaArticleCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final visual = _agendaVisual(item);
-    final matchedMatkuls = _resolveMatkulsForDate(item, selectedDate)
+    final matchedMatkuls = [..._resolveMatkulsForDate(item, selectedDate)]
       ..sort((a, b) => _compareMatkulPreviewsByTime(a, b));
     final primaryMatkul = matchedMatkuls.isNotEmpty
         ? matchedMatkuls.first
@@ -1629,7 +1638,9 @@ List<JadwalMatkulPreview> _resolveMatkulsForDate(
   }).toList();
 
   if (matched.isNotEmpty) {
-    return matched.expand((preview) => _withEntriesForDay(preview, dayKey)).toList();
+    return matched
+        .expand((preview) => _withEntriesForDay(preview, dayKey))
+        .toList();
   }
 
   return item.matkulPreviews
@@ -1685,10 +1696,7 @@ String? _timeLabelFromEntry(JadwalMatkulScheduleEntry entry) {
   return null;
 }
 
-int _compareMatkulPreviewsByTime(
-  JadwalMatkulPreview a,
-  JadwalMatkulPreview b,
-) {
+int _compareMatkulPreviewsByTime(JadwalMatkulPreview a, JadwalMatkulPreview b) {
   final aStart = _sortMinutesFromTimeLabel(a.timeLabel);
   final bStart = _sortMinutesFromTimeLabel(b.timeLabel);
   if (aStart != bStart) return aStart.compareTo(bStart);
@@ -1708,9 +1716,10 @@ int _compareAgendaItemsForDate(
   JadwalItem b,
   DateTime selectedDate,
 ) {
-  final byStart = _agendaSortStart(a, selectedDate).compareTo(
-    _agendaSortStart(b, selectedDate),
-  );
+  final byStart = _agendaSortStart(
+    a,
+    selectedDate,
+  ).compareTo(_agendaSortStart(b, selectedDate));
   if (byStart != 0) return byStart;
 
   return a.id.compareTo(b.id);

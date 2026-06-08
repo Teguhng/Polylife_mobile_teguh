@@ -6,8 +6,9 @@ import 'package:mobile_ver/features/jadwal/models/jadwal_item.dart';
 
 class JadwalFormScreen extends StatefulWidget {
   final JadwalItem? initialItem;
+  final DateTime? initialDate;
 
-  const JadwalFormScreen({super.key, this.initialItem});
+  const JadwalFormScreen({super.key, this.initialItem, this.initialDate});
 
   @override
   State<JadwalFormScreen> createState() => _JadwalFormScreenState();
@@ -30,15 +31,12 @@ class _JadwalFormScreenState extends State<JadwalFormScreen> {
   void initState() {
     super.initState();
     final item = widget.initialItem;
+    final seedDate = item?.startAt ?? widget.initialDate ?? DateTime.now();
     _titleController = TextEditingController(text: item?.title ?? '');
     _locationController = TextEditingController(text: item?.location ?? '');
     _notesController = TextEditingController(text: item?.notes ?? '');
     _selectedType = item?.type ?? JadwalType.kuliah;
-    _selectedDate = DateTime(
-      (item?.startAt ?? DateTime.now()).year,
-      (item?.startAt ?? DateTime.now()).month,
-      (item?.startAt ?? DateTime.now()).day,
-    );
+    _selectedDate = DateTime(seedDate.year, seedDate.month, seedDate.day);
     _startTime = TimeOfDay.fromDateTime(item?.startAt ?? DateTime.now());
     _endTime = TimeOfDay.fromDateTime(
       item?.endAt ?? DateTime.now().add(const Duration(hours: 1)),
