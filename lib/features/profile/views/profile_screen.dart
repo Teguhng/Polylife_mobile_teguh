@@ -1,7 +1,11 @@
+import 'dart:typed_data';
+
+import 'package:flutter_image_compress/flutter_image_compress.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:image/image.dart' as img;
 import 'package:image_picker/image_picker.dart';
 
 import 'package:mobile_ver/features/auth/models/user_model.dart';
@@ -316,13 +320,85 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     if (image == null) return;
 
     setState(() => _isAvatarBusy = true);
-    final result = await ref
-        .read(authProvider.notifier)
-        .uploadProfileAvatar(image.path);
+    AuthActionResult result;
+
+    try {
+      final avatarBytes = await _prepareAvatarBytesForUpload(image);
+      result = await ref
+          .read(authProvider.notifier)
+          .uploadProfileAvatarBytes(avatarBytes);
+    } catch (error) {
+      result = AuthActionResult.failure(
+        'Foto profil gagal diproses di aplikasi: $error',
+      );
+    }
 
     if (!mounted) return;
     setState(() => _isAvatarBusy = false);
     messenger.showSnackBar(SnackBar(content: Text(result.message)));
+  }
+
+  Future<Uint8List> _prepareAvatarBytesForUpload(XFile image) async {
+    final compressed = await _compressAvatarWithNativeCodec(image);
+    if (compressed != null) {
+      return _normalizeAvatarBytes(compressed);
+    }
+
+    return _normalizeAvatarBytes(await image.readAsBytes());
+  }
+
+  Uint8List _normalizeAvatarBytes(Uint8List sourceBytes) {
+    final decoded = img.decodeImage(sourceBytes);
+    if (decoded == null) {
+      throw const FormatException('Unsupported avatar image.');
+    }
+
+    final oriented = img.bakeOrientation(decoded);
+    final squareSize = oriented.width < oriented.height
+        ? oriented.width
+        : oriented.height;
+    final cropped = img.copyCrop(
+      oriented,
+      x: (oriented.width - squareSize) ~/ 2,
+      y: (oriented.height - squareSize) ~/ 2,
+      width: squareSize,
+      height: squareSize,
+    );
+    final resized = img.copyResize(
+      cropped,
+      width: 256,
+      height: 256,
+      interpolation: img.Interpolation.average,
+    );
+    final encoded = img.encodeJpg(resized, quality: 82);
+
+    return Uint8List.fromList(encoded);
+  }
+
+  Future<Uint8List?> _compressAvatarWithNativeCodec(XFile image) async {
+    try {
+      final result = await FlutterImageCompress.compressWithFile(
+        image.path,
+        minWidth: 256,
+        minHeight: 256,
+        quality: 82,
+        format: CompressFormat.jpeg,
+        autoCorrectionAngle: true,
+        keepExif: false,
+      );
+
+      if (result == null) {
+        return null;
+      }
+
+      if (result.isEmpty) {
+        return null;
+      }
+
+      return result;
+    } catch (_) {
+      return null;
+    }
   }
 
   Future<void> _deleteAvatar() async {

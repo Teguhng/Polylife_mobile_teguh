@@ -1,6 +1,8 @@
 import 'dart:convert';
+import 'dart:typed_data';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:http_parser/http_parser.dart';
 import 'package:mobile_ver/core/config/app_mode.dart';
 import 'package:mobile_ver/core/database/app_database.dart';
 import 'package:mobile_ver/core/network/api_client.dart';
@@ -285,7 +287,10 @@ class AuthController extends StateNotifier<bool> {
     }
   }
 
-  Future<AuthActionResult> uploadProfileAvatar(String filePath) async {
+  Future<AuthActionResult> uploadProfileAvatar(
+    String filePath, {
+    String? mimeTypeHint,
+  }) async {
     if (AppMode.uiOnly) {
       return const AuthActionResult.success('Foto profil berhasil diperbarui.');
     }
@@ -295,6 +300,35 @@ class AuthController extends StateNotifier<bool> {
         '/profile/avatar',
         fileField: 'avatar',
         filePath: filePath,
+        filename: _avatarUploadFilename(filePath, mimeTypeHint),
+        contentType: _avatarUploadMediaType(filePath, mimeTypeHint),
+      );
+
+      return _persistUserActionResponse(
+        response.body,
+        response.statusCode,
+        successFallback: 'Foto profil berhasil diperbarui.',
+        failureFallback: 'Foto profil gagal diperbarui.',
+      );
+    } on StateError catch (e) {
+      return AuthActionResult.failure(e.message);
+    } catch (_) {
+      return const AuthActionResult.failure('Network error occurred');
+    }
+  }
+
+  Future<AuthActionResult> uploadProfileAvatarBytes(Uint8List bytes) async {
+    if (AppMode.uiOnly) {
+      return const AuthActionResult.success('Foto profil berhasil diperbarui.');
+    }
+
+    try {
+      final response = await ApiClient.postMultipartBytes(
+        '/profile/avatar',
+        fileField: 'avatar',
+        bytes: bytes,
+        filename: 'avatar.jpg',
+        contentType: MediaType('image', 'jpeg'),
       );
 
       return _persistUserActionResponse(
@@ -563,6 +597,50 @@ class AuthController extends StateNotifier<bool> {
     final trimmed = value.trim();
 
     return trimmed.isEmpty ? null : trimmed;
+  }
+
+  String _avatarUploadFilename(String filePath, String? mimeTypeHint) {
+    final extension = _avatarUploadExtension(filePath, mimeTypeHint);
+    return 'avatar$extension';
+  }
+
+  MediaType _avatarUploadMediaType(String filePath, String? mimeTypeHint) {
+    final extension = _avatarUploadExtension(filePath, mimeTypeHint);
+    switch (extension) {
+      case '.png':
+        return MediaType('image', 'png');
+      case '.webp':
+        return MediaType('image', 'webp');
+      case '.jpg':
+      case '.jpeg':
+      default:
+        return MediaType('image', 'jpeg');
+    }
+  }
+
+  String _avatarUploadExtension(String filePath, String? mimeTypeHint) {
+    final normalizedMime = (mimeTypeHint ?? '').toLowerCase().trim();
+    if (normalizedMime == 'image/png') {
+      return '.png';
+    }
+    if (normalizedMime == 'image/webp') {
+      return '.webp';
+    }
+    if (normalizedMime == 'image/jpeg' || normalizedMime == 'image/jpg') {
+      return '.jpg';
+    }
+
+    final normalized = filePath.toLowerCase();
+    if (normalized.endsWith('.png')) {
+      return '.png';
+    }
+    if (normalized.endsWith('.webp')) {
+      return '.webp';
+    }
+    if (normalized.endsWith('.jpeg')) {
+      return '.jpeg';
+    }
+    return '.jpg';
   }
 }
 

@@ -82,7 +82,10 @@ class PengumumanListScreen extends ConsumerWidget {
                   }
 
                   final item = list[index - 2];
-                  return _ActivityCard(item: item);
+                  return _ActivityCard(
+                    item: item,
+                    onTap: () => _openActivityDetail(context, item),
+                  );
                 },
               ),
             );
@@ -97,6 +100,12 @@ class PengumumanListScreen extends ConsumerWidget {
       ),
     );
   }
+}
+
+void _openActivityDetail(BuildContext context, Pengumuman item) {
+  Navigator.of(
+    context,
+  ).push(MaterialPageRoute(builder: (_) => _ActivityDetailScreen(item: item)));
 }
 
 class _HeaderRow extends StatelessWidget {
@@ -140,8 +149,9 @@ class _HeaderRow extends StatelessWidget {
 
 class _ActivityCard extends StatelessWidget {
   final Pengumuman item;
+  final VoidCallback onTap;
 
-  const _ActivityCard({required this.item});
+  const _ActivityCard({required this.item, required this.onTap});
 
   @override
   Widget build(BuildContext context) {
@@ -150,117 +160,335 @@ class _ActivityCard extends StatelessWidget {
     final imageUrl = _resolvedImageUrl(item.imageUrl);
     final isNew = _isRecent(item.publishedAt);
 
-    return Container(
-      decoration: BoxDecoration(
-        color: context.appSurface,
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
         borderRadius: BorderRadius.circular(22),
-        border: Border.all(color: context.appBorder),
-        boxShadow: context.appCardShadow,
-      ),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(22),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            if (imageUrl == null)
-              SizedBox(
-                height: 214,
-                width: double.infinity,
-                child: _PosterPlaceholder(item: item),
-              )
-            else
-              _ActivityImagePanel(
-                imageUrl: imageUrl,
-                placeholder: _PosterPlaceholder(item: item),
-              ),
-            Padding(
-              padding: const EdgeInsets.fromLTRB(16, 14, 16, 16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
+        child: Container(
+          decoration: BoxDecoration(
+            color: context.appSurface,
+            borderRadius: BorderRadius.circular(22),
+            border: Border.all(color: context.appBorder),
+            boxShadow: context.appCardShadow,
+          ),
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(22),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                if (imageUrl == null)
+                  SizedBox(
+                    height: 214,
+                    width: double.infinity,
+                    child: _PosterPlaceholder(item: item),
+                  )
+                else
+                  _ActivityImagePanel(
+                    imageUrl: imageUrl,
+                    placeholder: _PosterPlaceholder(item: item),
+                  ),
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 14, 16, 16),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Expanded(
-                        child: Text(
-                          organizerLabel,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: GoogleFonts.plusJakartaSans(
-                            fontSize: 11.5,
-                            fontWeight: FontWeight.w800,
-                            color: context.appPrimary,
-                            letterSpacing: 1.0,
-                          ),
-                        ),
-                      ),
-                      if (isNew)
-                        Container(
-                          margin: const EdgeInsets.only(left: 10),
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 11,
-                            vertical: 6,
-                          ),
-                          decoration: BoxDecoration(
-                            color: context.appPrimarySoft,
-                            borderRadius: BorderRadius.circular(999),
-                          ),
-                          child: Text(
-                            'BARU',
-                            style: GoogleFonts.plusJakartaSans(
-                              color: const Color(0xFF4B3FF2),
-                              fontSize: 10.5,
-                              fontWeight: FontWeight.w800,
-                              letterSpacing: 0.6,
+                      Row(
+                        children: [
+                          Expanded(
+                            child: Text(
+                              organizerLabel,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: GoogleFonts.plusJakartaSans(
+                                fontSize: 11.5,
+                                fontWeight: FontWeight.w800,
+                                color: context.appPrimary,
+                                letterSpacing: 1.0,
+                              ),
                             ),
                           ),
+                          if (isNew)
+                            Container(
+                              margin: const EdgeInsets.only(left: 10),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 11,
+                                vertical: 6,
+                              ),
+                              decoration: BoxDecoration(
+                                color: context.appPrimarySoft,
+                                borderRadius: BorderRadius.circular(999),
+                              ),
+                              child: Text(
+                                'BARU',
+                                style: GoogleFonts.plusJakartaSans(
+                                  color: const Color(0xFF4B3FF2),
+                                  fontSize: 10.5,
+                                  fontWeight: FontWeight.w800,
+                                  letterSpacing: 0.6,
+                                ),
+                              ),
+                            ),
+                        ],
+                      ),
+                      const SizedBox(height: 6),
+                      Text(
+                        item.title,
+                        style: GoogleFonts.plusJakartaSans(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w800,
+                          color: context.appText,
+                          height: 1.2,
                         ),
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        _descriptionText(item),
+                        maxLines: 3,
+                        overflow: TextOverflow.ellipsis,
+                        style: GoogleFonts.plusJakartaSans(
+                          fontSize: 13.5,
+                          fontWeight: FontWeight.w500,
+                          color: context.appMuted,
+                          height: 1.5,
+                        ),
+                      ),
+                      const SizedBox(height: 14),
+                      Row(
+                        children: [
+                          Icon(
+                            Icons.calendar_today_outlined,
+                            size: 16,
+                            color: context.appFaint,
+                          ),
+                          const SizedBox(width: 6),
+                          Expanded(
+                            child: Text(
+                              publishedLabel,
+                              style: GoogleFonts.plusJakartaSans(
+                                fontSize: 12.5,
+                                fontWeight: FontWeight.w600,
+                                color: context.appMuted,
+                              ),
+                            ),
+                          ),
+                          Icon(
+                            Icons.arrow_forward_rounded,
+                            size: 18,
+                            color: context.appPrimary,
+                          ),
+                        ],
+                      ),
                     ],
                   ),
-                  const SizedBox(height: 6),
-                  Text(
-                    item.title,
-                    style: GoogleFonts.plusJakartaSans(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w800,
-                      color: context.appText,
-                      height: 1.2,
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    _descriptionText(item),
-                    maxLines: 3,
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _ActivityDetailScreen extends StatelessWidget {
+  final Pengumuman item;
+
+  const _ActivityDetailScreen({required this.item});
+
+  @override
+  Widget build(BuildContext context) {
+    final imageUrl = _resolvedImageUrl(item.imageUrl);
+    final organizerLabel = _organizerLabel(item);
+    final publishedLabel = _publishedDateLabel(item.publishedAt);
+    final isNew = _isRecent(item.publishedAt);
+
+    return Scaffold(
+      backgroundColor: context.appBackground,
+      body: SafeArea(
+        child: ListView(
+          padding: const EdgeInsets.fromLTRB(16, 12, 16, 28),
+          children: [
+            Row(
+              children: [
+                _BackButton(onTap: () => Navigator.of(context).pop()),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Text(
+                    'Detail Kegiatan',
+                    maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: GoogleFonts.plusJakartaSans(
-                      fontSize: 13.5,
-                      fontWeight: FontWeight.w500,
-                      color: context.appMuted,
-                      height: 1.5,
+                      fontSize: 20,
+                      fontWeight: FontWeight.w800,
+                      color: context.appText,
                     ),
                   ),
-                  const SizedBox(height: 14),
-                  Row(
-                    children: [
-                      Icon(
-                        Icons.calendar_today_outlined,
-                        size: 16,
-                        color: context.appFaint,
+                ),
+              ],
+            ),
+            const SizedBox(height: 18),
+            Container(
+              decoration: BoxDecoration(
+                color: context.appSurface,
+                borderRadius: BorderRadius.circular(22),
+                border: Border.all(color: context.appBorder),
+                boxShadow: context.appCardShadow,
+              ),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(22),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    if (imageUrl == null)
+                      SizedBox(
+                        height: 260,
+                        width: double.infinity,
+                        child: _PosterPlaceholder(item: item),
+                      )
+                    else
+                      _ActivityImagePanel(
+                        imageUrl: imageUrl,
+                        placeholder: _PosterPlaceholder(item: item),
                       ),
-                      const SizedBox(width: 6),
-                      Text(
-                        publishedLabel,
-                        style: GoogleFonts.plusJakartaSans(
-                          fontSize: 12.5,
-                          fontWeight: FontWeight.w600,
-                          color: context.appMuted,
-                        ),
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(16, 16, 16, 18),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            children: [
+                              Expanded(
+                                child: Text(
+                                  organizerLabel,
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: GoogleFonts.plusJakartaSans(
+                                    fontSize: 11.5,
+                                    fontWeight: FontWeight.w800,
+                                    color: context.appPrimary,
+                                    letterSpacing: 1.0,
+                                  ),
+                                ),
+                              ),
+                              if (isNew)
+                                Container(
+                                  margin: const EdgeInsets.only(left: 10),
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 11,
+                                    vertical: 6,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: context.appPrimarySoft,
+                                    borderRadius: BorderRadius.circular(999),
+                                  ),
+                                  child: Text(
+                                    'BARU',
+                                    style: GoogleFonts.plusJakartaSans(
+                                      color: const Color(0xFF4B3FF2),
+                                      fontSize: 10.5,
+                                      fontWeight: FontWeight.w800,
+                                      letterSpacing: 0.6,
+                                    ),
+                                  ),
+                                ),
+                            ],
+                          ),
+                          const SizedBox(height: 10),
+                          Text(
+                            item.title,
+                            style: GoogleFonts.plusJakartaSans(
+                              fontSize: 20,
+                              fontWeight: FontWeight.w800,
+                              color: context.appText,
+                              height: 1.25,
+                            ),
+                          ),
+                          const SizedBox(height: 14),
+                          Row(
+                            children: [
+                              Icon(
+                                Icons.calendar_today_outlined,
+                                size: 17,
+                                color: context.appFaint,
+                              ),
+                              const SizedBox(width: 8),
+                              Expanded(
+                                child: Text(
+                                  publishedLabel,
+                                  style: GoogleFonts.plusJakartaSans(
+                                    fontSize: 13,
+                                    fontWeight: FontWeight.w700,
+                                    color: context.appMuted,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 18),
+                          Text(
+                            'Caption',
+                            style: GoogleFonts.plusJakartaSans(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w800,
+                              color: context.appText,
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          SelectableText(
+                            _descriptionText(item),
+                            style: GoogleFonts.plusJakartaSans(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w500,
+                              color: context.appMuted,
+                              height: 1.6,
+                            ),
+                          ),
+                        ],
                       ),
-                    ],
-                  ),
-                ],
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            const SizedBox(height: 18),
+            FilledButton.icon(
+              onPressed: () => Navigator.of(context).pop(),
+              icon: const Icon(Icons.arrow_back_rounded),
+              label: const Text('Kembali'),
+              style: FilledButton.styleFrom(
+                backgroundColor: const Color(0xFF4B3FF2),
+                foregroundColor: Colors.white,
+                padding: const EdgeInsets.symmetric(vertical: 14),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(16),
+                ),
               ),
             ),
           ],
+        ),
+      ),
+    );
+  }
+}
+
+class _BackButton extends StatelessWidget {
+  final VoidCallback onTap;
+
+  const _BackButton({required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: context.appSurface,
+      borderRadius: BorderRadius.circular(14),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(14),
+        child: SizedBox(
+          width: 44,
+          height: 44,
+          child: Icon(Icons.arrow_back_rounded, color: context.appText),
         ),
       ),
     );

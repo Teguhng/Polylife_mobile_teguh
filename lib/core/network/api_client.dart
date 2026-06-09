@@ -1,6 +1,8 @@
 import 'dart:convert';
+import 'dart:typed_data';
 
 import 'package:http/http.dart' as http;
+import 'package:http_parser/http_parser.dart';
 import 'package:mobile_ver/core/config/api_config.dart';
 import 'package:mobile_ver/core/storage/local_storage.dart';
 
@@ -43,6 +45,8 @@ class ApiClient {
     required String fileField,
     required String filePath,
     Map<String, String> fields = const {},
+    String? filename,
+    MediaType? contentType,
   }) async {
     final headers = await _getHeaders();
     final request = http.MultipartRequest(
@@ -53,7 +57,45 @@ class ApiClient {
     request.headers.addAll(headers);
     request.headers.remove('Content-Type');
     request.fields.addAll(fields);
-    request.files.add(await http.MultipartFile.fromPath(fileField, filePath));
+    request.files.add(
+      await http.MultipartFile.fromPath(
+        fileField,
+        filePath,
+        filename: filename,
+        contentType: contentType,
+      ),
+    );
+
+    final response = await request.send().timeout(_timeout);
+
+    return http.Response.fromStream(response);
+  }
+
+  static Future<http.Response> postMultipartBytes(
+    String endpoint, {
+    required String fileField,
+    required Uint8List bytes,
+    required String filename,
+    required MediaType contentType,
+    Map<String, String> fields = const {},
+  }) async {
+    final headers = await _getHeaders();
+    final request = http.MultipartRequest(
+      'POST',
+      ApiConfig.endpointUri(endpoint),
+    );
+
+    request.headers.addAll(headers);
+    request.headers.remove('Content-Type');
+    request.fields.addAll(fields);
+    request.files.add(
+      http.MultipartFile.fromBytes(
+        fileField,
+        bytes,
+        filename: filename,
+        contentType: contentType,
+      ),
+    );
 
     final response = await request.send().timeout(_timeout);
 
