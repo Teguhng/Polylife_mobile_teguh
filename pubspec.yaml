@@ -50,6 +50,7 @@ dependencies:
   image: ^4.8.0
   flutter_image_compress: ^2.4.0
   http_parser: ^4.1.2
+  sqflite_common_ffi_web: ^1.2.0
 
 dev_dependencies:
   flutter_test:

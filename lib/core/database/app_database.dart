@@ -1,6 +1,7 @@
 import 'package:path/path.dart' as p;
 import 'package:mobile_ver/core/security/local_data_crypto.dart';
 import 'package:sqflite/sqflite.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 
 class AppDatabase {
   AppDatabase._();
@@ -16,9 +17,17 @@ class AppDatabase {
       return existing;
     }
 
-    final root = await getDatabasesPath();
+    final String dbPath;
+
+    if (kIsWeb) {
+      dbPath = 'polylife_mobile.db';
+    } else {
+      final root = await getDatabasesPath();
+      dbPath = p.join(root, 'polylife_mobile.db');
+    }
+
     final db = await openDatabase(
-      p.join(root, 'polylife_mobile.db'),
+      dbPath,
       version: _version,
       onCreate: _create,
       onUpgrade: _upgrade,

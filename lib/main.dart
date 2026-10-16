@@ -19,9 +19,18 @@ import 'features/profile/views/profile_screen.dart';
 import 'features/reminder/views/reminder_create_screen.dart';
 import 'features/reminder/views/reminder_screen.dart';
 import 'features/todo/views/todo_screen.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
+import 'package:sqflite/sqflite.dart' show databaseFactory;
+import 'package:sqflite_common_ffi_web/sqflite_ffi_web.dart'
+    show databaseFactoryFfiWeb;
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  if (kIsWeb) {
+    databaseFactory = databaseFactoryFfiWeb;
+  }
+
   await initializeDateFormatting('id_ID', null);
   await ReminderNotificationService.instance.initialize();
 
