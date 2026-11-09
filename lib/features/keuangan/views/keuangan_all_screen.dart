@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
 import 'package:mobile_ver/core/theme/app_theme_tokens.dart';
+import 'package:mobile_ver/features/ai/widgets/ai_app_bar_action.dart';
 import 'package:mobile_ver/features/keuangan/models/keuangan_model.dart';
 import 'package:mobile_ver/features/keuangan/providers/keuangan_provider.dart';
 import 'package:mobile_ver/features/keuangan/services/keuangan_all_exporter.dart';
@@ -126,6 +127,7 @@ class _KeuanganAllScreenState extends ConsumerState<KeuanganAllScreen> {
         backgroundColor: context.appBackground,
         title: const Text('Semua Keuangan'),
         actions: [
+          const AiAppBarAction(),
           IconButton(
             tooltip: 'Filter lanjutan',
             icon: Stack(

@@ -5,6 +5,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 
 import 'package:mobile_ver/core/theme/app_theme_tokens.dart';
+import 'package:mobile_ver/features/ai/widgets/ai_app_bar_action.dart';
 import 'package:mobile_ver/features/auth/models/user_model.dart';
 import 'package:mobile_ver/features/auth/providers/auth_provider.dart';
 import 'package:mobile_ver/features/keuangan/models/keuangan_model.dart';
@@ -18,6 +19,14 @@ final NumberFormat _idrFormatter = NumberFormat.currency(
   symbol: 'Rp ',
   decimalDigits: 0,
 );
+
+ButtonStyle _financeShortcutStyle(BuildContext context) =>
+    OutlinedButton.styleFrom(
+      foregroundColor: context.appPrimary,
+      side: BorderSide(color: context.appBorder),
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 10),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+    );
 
 class KeuanganScreen extends ConsumerWidget {
   const KeuanganScreen({super.key});
@@ -64,6 +73,62 @@ class KeuanganScreen extends ConsumerWidget {
                         fontWeight: FontWeight.w600,
                         color: context.appMuted,
                       ),
+                    ),
+                    const SizedBox(height: 12),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: OutlinedButton(
+                            onPressed: () =>
+                                context.push('/keuangan/statistik'),
+                            style: _financeShortcutStyle(context),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                const Icon(
+                                  Icons.query_stats_rounded,
+                                  size: 18,
+                                ),
+                                const SizedBox(width: 6),
+                                Flexible(
+                                  child: Text(
+                                    'Statistik & Tren',
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: GoogleFonts.plusJakartaSans(
+                                      fontWeight: FontWeight.w800,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: OutlinedButton(
+                            onPressed: () => context.push('/keuangan/anggaran'),
+                            style: _financeShortcutStyle(context),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                const Icon(Icons.savings_outlined, size: 18),
+                                const SizedBox(width: 6),
+                                Flexible(
+                                  child: Text(
+                                    'Plafon Anggaran',
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: GoogleFonts.plusJakartaSans(
+                                      fontWeight: FontWeight.w800,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
                     const SizedBox(height: 16),
                     _BalanceHeroCard(
@@ -258,6 +323,7 @@ class _MonthlyTransactionListScreen extends ConsumerWidget {
             color: context.appText,
           ),
         ),
+        actions: const [AiAppBarAction()],
       ),
       body: state.isLoading && state.items.isEmpty
           ? const Center(child: CircularProgressIndicator())
@@ -423,6 +489,11 @@ class _FinanceTopBar extends StatelessWidget {
           icon: Icons.notifications_none_rounded,
           showDot: true,
           onTap: onOpenNotifications,
+        ),
+        const SizedBox(width: 8),
+        _IconCapsuleButton(
+          icon: Icons.auto_awesome_rounded,
+          onTap: () => context.push('/ai'),
         ),
         const SizedBox(width: 8),
         _IconCapsuleButton(icon: Icons.logout_rounded, onTap: onLogout),

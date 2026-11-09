@@ -11,9 +11,12 @@ import 'features/auth/views/login_screen.dart';
 import 'features/auth/views/register_screen.dart';
 import 'features/dashboard/views/main_layout.dart';
 import 'features/dashboard/views/home_screen.dart';
+import 'features/ai/views/ai_chat_screen.dart';
 import 'features/catatan/views/catatan_list_screen.dart';
 import 'features/pengumuman/views/pengumuman_list_screen.dart';
 import 'features/keuangan/views/keuangan_screen.dart';
+import 'features/keuangan/views/keuangan_statistics_screen.dart';
+import 'features/keuangan/views/keuangan_budget_screen.dart';
 import 'features/jadwal/views/jadwal_screen.dart';
 import 'features/profile/views/profile_screen.dart';
 import 'features/reminder/views/reminder_create_screen.dart';
@@ -111,20 +114,32 @@ class _MyAppState extends ConsumerState<MyApp> {
           path: '/forgot-password',
           builder: (context, state) => const ForgotPasswordScreen(),
         ),
-        GoRoute(
-          path: '/reminder',
-          builder: (context, state) => const ReminderScreen(),
-        ),
-        GoRoute(
-          path: '/reminder/new',
-          builder: (context, state) => const ReminderCreateScreen(),
-        ),
         ShellRoute(
           builder: (context, state, child) => MainLayout(child: child),
           routes: [
             GoRoute(
+              path: '/reminder',
+              builder: (context, state) => const ReminderScreen(),
+            ),
+            GoRoute(
+              path: '/reminder/new',
+              builder: (context, state) => const ReminderCreateScreen(),
+            ),
+            GoRoute(
+              path: '/ai',
+              builder: (context, state) => const AiChatScreen(),
+            ),
+            GoRoute(
               path: '/keuangan',
               builder: (context, state) => const KeuanganScreen(),
+            ),
+            GoRoute(
+              path: '/keuangan/statistik',
+              builder: (context, state) => const KeuanganStatisticsScreen(),
+            ),
+            GoRoute(
+              path: '/keuangan/anggaran',
+              builder: (context, state) => const KeuanganBudgetScreen(),
             ),
             GoRoute(
               path: '/jadwal',

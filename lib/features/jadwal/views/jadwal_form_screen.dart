@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
 import 'package:mobile_ver/core/theme/app_theme_tokens.dart';
+import 'package:mobile_ver/features/ai/widgets/ai_app_bar_action.dart';
 import 'package:mobile_ver/features/jadwal/models/jadwal_item.dart';
 
 class JadwalFormScreen extends StatefulWidget {
@@ -129,7 +130,10 @@ class _JadwalFormScreenState extends State<JadwalFormScreen> {
       appBar: AppBar(
         backgroundColor: context.appBackground,
         title: Text(_isEdit ? 'Edit Jadwal' : 'Tambah Jadwal'),
-        actions: [TextButton(onPressed: _submit, child: const Text('Simpan'))],
+        actions: [
+          const AiAppBarAction(),
+          TextButton(onPressed: _submit, child: const Text('Simpan')),
+        ],
       ),
       body: Form(
         key: _formKey,

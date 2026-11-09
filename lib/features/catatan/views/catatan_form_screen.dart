@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:mobile_ver/core/theme/app_theme_tokens.dart';
+import 'package:mobile_ver/features/ai/widgets/ai_app_bar_action.dart';
 import '../models/catatan_model.dart';
 import '../providers/catatan_provider.dart';
 import 'package:intl/intl.dart';
@@ -116,6 +117,7 @@ class _CatatanFormScreenState extends ConsumerState<CatatanFormScreen> {
         backgroundColor: context.appBackground,
         title: Text(widget.catatan == null ? 'Buat Catatan' : 'Edit Catatan'),
         actions: [
+          const AiAppBarAction(),
           IconButton(
             icon: const Icon(Icons.check),
             onPressed: _isLoading ? null : _save,

@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import 'package:mobile_ver/core/theme/app_theme_tokens.dart';
+import 'package:mobile_ver/features/ai/widgets/ai_app_bar_action.dart';
 import 'package:mobile_ver/features/reminder/models/reminder_target_option.dart';
 import 'package:mobile_ver/features/reminder/providers/reminder_list_provider.dart';
 import 'package:mobile_ver/features/reminder/providers/upcoming_reminder_provider.dart';
@@ -189,6 +190,7 @@ class _ReminderCreateScreenState extends ConsumerState<ReminderCreateScreen> {
             color: context.appText,
           ),
         ),
+        actions: const [AiAppBarAction()],
       ),
       bottomNavigationBar: _isLoading
           ? null
