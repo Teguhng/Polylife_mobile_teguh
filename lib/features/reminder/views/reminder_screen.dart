@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import 'package:mobile_ver/core/theme/app_theme_tokens.dart';
+import 'package:mobile_ver/features/ai/widgets/ai_app_bar_action.dart';
 import 'package:mobile_ver/features/reminder/models/reminder_list_item.dart';
 import 'package:mobile_ver/features/reminder/providers/reminder_list_provider.dart';
 import 'package:mobile_ver/features/reminder/providers/upcoming_reminder_provider.dart';
@@ -30,6 +31,7 @@ class ReminderScreen extends ConsumerWidget {
             color: context.appText,
           ),
         ),
+        actions: const [AiAppBarAction()],
       ),
       body: RefreshIndicator(
         onRefresh: notifier.load,

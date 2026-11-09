@@ -31,6 +31,26 @@ class ApiConfig {
     }
 
     if (_hasAbsoluteScheme(path)) {
+      final uri = Uri.tryParse(path);
+      final host = uri?.host.toLowerCase();
+
+      // A backend running on the developer machine can emit absolute media
+      // URLs using localhost/127.0.0.1. On a phone those addresses refer to
+      // the phone itself, so route the same path through the configured API
+      // host (for example 10.0.2.2 on the Android emulator).
+      if (uri != null &&
+          uri.hasScheme &&
+          uri.hasAuthority &&
+          (host == 'localhost' ||
+              host == '127.0.0.1' ||
+              host == '::1' ||
+              host == '[::1]')) {
+        final resolved = '$baseOrigin${uri.path}'
+            '${uri.hasQuery ? '?${uri.query}' : ''}'
+            '${uri.hasFragment ? '#${uri.fragment}' : ''}';
+        return isAllowedAbsoluteUrl(resolved) ? resolved : null;
+      }
+
       return isAllowedAbsoluteUrl(path) ? path : null;
     }
 

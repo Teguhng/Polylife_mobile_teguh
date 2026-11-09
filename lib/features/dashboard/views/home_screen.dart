@@ -6,6 +6,7 @@ import 'package:intl/intl.dart';
 import 'dart:async';
 
 import 'package:mobile_ver/core/theme/app_theme_tokens.dart';
+import 'package:mobile_ver/features/ai/widgets/ai_app_bar_action.dart';
 import 'package:mobile_ver/features/auth/models/user_model.dart';
 import 'package:mobile_ver/features/auth/providers/auth_provider.dart';
 import 'package:mobile_ver/features/catatan/providers/catatan_provider.dart';
@@ -292,6 +293,8 @@ class _DashboardTopBar extends StatelessWidget {
           onTap: onOpenNotifications,
         ),
         const SizedBox(width: 8),
+        const AiAppBarAction(),
+        const SizedBox(width: 4),
         _IconCapsuleButton(icon: Icons.logout_rounded, onTap: onLogout),
       ],
     );
