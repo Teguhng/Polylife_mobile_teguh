@@ -5,6 +5,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 
 import 'package:mobile_ver/core/theme/app_theme_tokens.dart';
+import 'package:mobile_ver/features/ai/widgets/ai_app_bar_action.dart';
 import 'package:mobile_ver/features/auth/models/user_model.dart';
 import 'package:mobile_ver/features/auth/providers/auth_provider.dart';
 import 'package:mobile_ver/features/jadwal/models/jadwal_item.dart';
@@ -418,6 +419,8 @@ class _TopBar extends StatelessWidget {
           showDot: true,
           onTap: onOpenNotifications,
         ),
+        const SizedBox(width: 4),
+        const AiAppBarAction(),
       ],
     );
   }

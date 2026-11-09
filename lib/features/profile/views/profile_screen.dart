@@ -10,6 +10,7 @@ import 'package:image_picker/image_picker.dart';
 
 import 'package:mobile_ver/features/auth/models/user_model.dart';
 import 'package:mobile_ver/features/auth/providers/auth_provider.dart';
+import 'package:mobile_ver/features/ai/widgets/ai_app_bar_action.dart';
 import 'package:mobile_ver/features/profile/widgets/profile_avatar.dart';
 
 class ProfileScreen extends ConsumerStatefulWidget {
@@ -601,6 +602,8 @@ class _TitleBar extends StatelessWidget {
           ),
         ),
         _CircleActionButton(icon: Icons.refresh_rounded, onTap: onRefresh),
+        const SizedBox(width: 4),
+        const AiAppBarAction(),
         if (onEdit != null || onCancelEdit != null) ...[
           const SizedBox(width: 8),
           _CircleActionButton(

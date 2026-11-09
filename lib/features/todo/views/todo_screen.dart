@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:mobile_ver/core/theme/app_theme_tokens.dart';
+import 'package:mobile_ver/features/ai/widgets/ai_app_bar_action.dart';
 import 'package:mobile_ver/features/todo/models/todo_item.dart';
 import 'package:mobile_ver/features/todo/providers/todo_provider.dart';
 import 'package:mobile_ver/features/todo/views/todo_task_form_dialog.dart';
@@ -20,6 +21,7 @@ class TodoScreen extends ConsumerWidget {
       appBar: AppBar(
         title: const Text('To-Do'),
         actions: [
+          const AiAppBarAction(),
           IconButton(
             tooltip: 'Muat ulang',
             onPressed: notifier.load,

@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
 import 'package:mobile_ver/core/theme/app_theme_tokens.dart';
+import 'package:mobile_ver/features/ai/widgets/ai_app_bar_action.dart';
 import 'package:mobile_ver/features/keuangan/models/keuangan_model.dart';
 import 'package:mobile_ver/features/keuangan/providers/keuangan_provider.dart';
 import 'package:mobile_ver/features/keuangan/services/keuangan_all_exporter.dart';
@@ -251,6 +252,7 @@ class _KeuanganFormScreenState extends ConsumerState<KeuanganFormScreen> {
         backgroundColor: context.appBackground,
         title: Text(_isEdit ? 'Edit Transaksi' : 'Tambah Transaksi'),
         actions: [
+          const AiAppBarAction(),
           TextButton(
             onPressed: _isSaving ? null : _submit,
             child: const Text('Simpan'),

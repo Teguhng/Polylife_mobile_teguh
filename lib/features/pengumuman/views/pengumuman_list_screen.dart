@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import 'package:mobile_ver/core/config/api_config.dart';
-import 'package:mobile_ver/core/media/local_image_cache.dart';
 import 'package:mobile_ver/core/theme/app_theme_tokens.dart';
+import 'package:mobile_ver/features/ai/widgets/ai_app_bar_action.dart';
 import 'package:mobile_ver/features/pengumuman/models/pengumuman_model.dart';
 import 'package:mobile_ver/features/pengumuman/providers/pengumuman_provider.dart';
-import 'dart:typed_data';
 
 class PengumumanListScreen extends ConsumerWidget {
   const PengumumanListScreen({super.key});
@@ -126,6 +126,7 @@ class _HeaderRow extends StatelessWidget {
           ),
         ),
         const Spacer(),
+        const AiAppBarAction(),
         Container(
           decoration: BoxDecoration(
             color: context.appSurface,
@@ -137,7 +138,7 @@ class _HeaderRow extends StatelessWidget {
             tooltip: 'Muat ulang',
             onPressed: onRefresh,
             icon: const Icon(
-              Icons.auto_awesome_outlined,
+              Icons.refresh_rounded,
               color: Color(0xFF4B3FF2),
             ),
           ),
@@ -495,7 +496,7 @@ class _BackButton extends StatelessWidget {
   }
 }
 
-class _ActivityImagePanel extends StatefulWidget {
+class _ActivityImagePanel extends StatelessWidget {
   final String imageUrl;
   final Widget placeholder;
 
@@ -504,61 +505,14 @@ class _ActivityImagePanel extends StatefulWidget {
     required this.placeholder,
   });
 
-  @override
-  State<_ActivityImagePanel> createState() => _ActivityImagePanelState();
-}
-
-class _ActivityImagePanelState extends State<_ActivityImagePanel> {
-  late Future<Uint8List?> _imageBytesFuture;
-  bool _hasRetried = false;
-
-  @override
-  void initState() {
-    super.initState();
-    _imageBytesFuture = _loadImageBytes();
-  }
-
-  @override
-  void didUpdateWidget(covariant _ActivityImagePanel oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    if (oldWidget.imageUrl != widget.imageUrl) {
-      _hasRetried = false;
-      _imageBytesFuture = _loadImageBytes(forceRefresh: true);
-    }
-  }
-
-  Future<Uint8List?> _loadImageBytes({bool forceRefresh = false}) {
-    return LocalImageCache.getOrFetchBytes(
-      widget.imageUrl,
-      forceRefresh: forceRefresh,
-    );
-  }
-
-  void _scheduleForcedRefresh() {
-    if (_hasRetried) {
-      return;
-    }
-
-    _hasRetried = true;
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (!mounted) {
-        return;
-      }
-
-      setState(() {
-        _imageBytesFuture = _loadImageBytes(forceRefresh: true);
-      });
-    });
-  }
-
-  Widget _placeholderPanel({bool showLoader = false}) {
+  Widget _placeholderPanel(BuildContext context, {bool showLoader = false}) {
     return SizedBox(
       height: 214,
       width: double.infinity,
       child: Stack(
         fit: StackFit.expand,
         children: [
-          widget.placeholder,
+          placeholder,
           if (showLoader)
             const Center(
               child: SizedBox(
@@ -577,47 +531,66 @@ class _ActivityImagePanelState extends State<_ActivityImagePanel> {
 
   @override
   Widget build(BuildContext context) {
-    return FutureBuilder<Uint8List?>(
-      future: _imageBytesFuture,
-      builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          return _placeholderPanel(showLoader: true);
-        }
-
-        final bytes = snapshot.data;
-        if (bytes == null || bytes.isEmpty) {
-          if (!_hasRetried) {
-            _scheduleForcedRefresh();
-            return _placeholderPanel(showLoader: true);
-          }
-
-          return _placeholderPanel();
-        }
-
-        return ColoredBox(
-          color: const Color(0xFF171327),
-          child: Image.memory(
-            bytes,
+    return Image.network(
+      imageUrl,
+      width: double.infinity,
+      fit: BoxFit.fitWidth,
+      alignment: Alignment.topCenter,
+      gaplessPlayback: true,
+      // Cross origin public images can be displayed by an HTML img even when
+      // the media host does not grant canvas access through CORS.
+      webHtmlElementStrategy: kIsWeb
+          ? WebHtmlElementStrategy.prefer
+          : WebHtmlElementStrategy.never,
+      loadingBuilder: (context, child, progress) {
+        if (progress == null) return child;
+        return _placeholderPanel(context, showLoader: true);
+      },
+      errorBuilder: (context, error, stackTrace) {
+        final storageUrl = _storageFallbackUrl(imageUrl);
+        if (storageUrl != null) {
+          return Image.network(
+            storageUrl,
             width: double.infinity,
             fit: BoxFit.fitWidth,
             alignment: Alignment.topCenter,
             gaplessPlayback: true,
-            frameBuilder: (context, child, frame, wasSynchronouslyLoaded) {
-              if (wasSynchronouslyLoaded || frame != null) {
-                return child;
-              }
+            webHtmlElementStrategy: kIsWeb
+                ? WebHtmlElementStrategy.prefer
+                : WebHtmlElementStrategy.never,
+            loadingBuilder: (context, child, progress) {
+              if (progress == null) return child;
+              return _placeholderPanel(context, showLoader: true);
+            },
+            errorBuilder: (context, fallbackError, fallbackStackTrace) {
+              debugPrint('Activity image failed: $imageUrl ($error)');
+              debugPrint('Storage image fallback failed: $storageUrl ($fallbackError)');
+              return _placeholderPanel(context);
+            },
+          );
+        }
 
-              return _placeholderPanel(showLoader: true);
-            },
-            errorBuilder: (_, _, _) {
-              _scheduleForcedRefresh();
-              return _placeholderPanel(showLoader: !_hasRetried);
-            },
-          ),
-        );
+        debugPrint('Activity image failed: $imageUrl ($error)');
+        return _placeholderPanel(context);
       },
     );
   }
+}
+
+String? _storageFallbackUrl(String imageUrl) {
+  final uri = Uri.tryParse(imageUrl);
+  if (uri == null || uri.pathSegments.length < 4) return null;
+
+  final segments = uri.pathSegments;
+  if (segments[0] != 'media' ||
+      segments[1] != 'broadcasts' ||
+      segments[2] != 'broadcasts') {
+    return null;
+  }
+
+  return uri
+      .replace(path: '/storage/${segments.skip(2).join('/')}')
+      .toString();
 }
 
 class _PosterPlaceholder extends StatelessWidget {
